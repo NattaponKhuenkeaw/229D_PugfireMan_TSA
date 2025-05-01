@@ -1,77 +1,111 @@
-using UnityEditor;
 using UnityEngine;
-using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
-public class playerControl : MonoBehaviour
+public class PlayerControl : MonoBehaviour
 {
-    
+    public Image[] hearts;
+    public int maxHealth = 3;
+    private int currentHealth;
     public Transform shootPoint;
-    
     public GameObject target;
-   
     public Rigidbody2D bulletPrefab;
-    
-    public float yRange  ;
+    public float speed = 5f;
+    public float jumpForce = 150f;
+    private bool isJumping = false;
+    private float moveInput;
+    private Rigidbody2D rb2d;
 
-    public float speed;
-    
-    private float horizontalInput;
+    void Awake()
+    {
+        currentHealth = maxHealth;
+        rb2d = GetComponent<Rigidbody2D>(); // กำหนด Rigidbody2D ที่แนบกับ Player
+    }
 
-    private InputAction moveAction;
-    
+    void Update()
+    {
+        // การกระโดด
+        if (Input.GetButtonDown("Jump") && !isJumping)
+        {
+            rb2d.AddForce(Vector2.up * jumpForce);
+            isJumping = true;
+        }
+
+        // การยิง
+        if (Input.GetMouseButtonDown(0))
+        {
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            Debug.DrawRay(ray.origin, ray.direction * 5f, Color.magenta, 5f);
+
+            RaycastHit2D hit = Physics2D.GetRayIntersection(ray, Mathf.Infinity);
+
+            if (hit.collider != null)
+            {
+                target.transform.position = hit.point;
+
+                Vector2 projectileVelocity = CalculateProjectileVelocity(shootPoint.position, hit.point, 1f);
+
+                Rigidbody2D firedBullet = Instantiate(bulletPrefab, shootPoint.position, Quaternion.identity);
+                firedBullet.linearVelocity = projectileVelocity;
+            }
+        }
+
+        if (Input.GetKeyDown(KeyCode.A))
+        {
+            transform.rotation = Quaternion.Euler(0, 0, 0);
+        }
+        if (Input.GetKeyDown(KeyCode.D))
+        {
+            transform.rotation = Quaternion.Euler(0, 180, 0);
+        }
+
+        // การเคลื่อนที่ซ้าย-ขวา
+        moveInput = Input.GetAxis("Horizontal");
+        rb2d.linearVelocity = new Vector2(moveInput * speed, rb2d.linearVelocity.y);
+    }
+
     Vector2 CalculateProjectileVelocity(Vector2 origin, Vector2 target, float time)
     {
         Vector2 distance = target - origin;
- 
         float velocityX = distance.x / time;
         float velocityY = distance.y / time + 0.5f * Mathf.Abs(Physics2D.gravity.y) * time;
- 
-        return new Vector2(velocityX, velocityY);
-    }//
-    void Awake()
-    {
-        moveAction = InputSystem.actions.FindAction("Move");
-        
-    }// Start
 
-    // Update 
-    void Update()
+        return new Vector2(velocityX, velocityY);
+    }
+
+  
+
+    void OnCollisionEnter2D(Collision2D other)
     {
-        if (Input.GetMouseButtonDown(0))
+        if (other.gameObject.CompareTag("Ground"))
         {
-            // แปลงตำแหน่งเมาส์ในจอ เป็นตำแหน่งในโลก 2D
-            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            Debug.DrawRay(ray.origin, ray.direction * 5f, Color.magenta, 5f);
- 
-            RaycastHit2D hit = Physics2D.GetRayIntersection(ray, Mathf.Infinity);
- 
-            if (hit.collider != null)
-            {
-                // ย้าย Target ไปที่ตำแหน่งคลิก
-                target.transform.position = new Vector2(hit.point.x, hit.point.y);
- 
-                // คำนวณความเร็วสำหรับการยิง
-                Vector2 projectileVelocity = CalculateProjectileVelocity(shootPoint.position, hit.point, 1f);
- 
-                // สร้างกระสุนใหม่
-                Rigidbody2D firedBullet = Instantiate(bulletPrefab, shootPoint.position, Quaternion.identity);
- 
-                // ใส่ความเร็วให้กระสุน
-                firedBullet.linearVelocity = projectileVelocity;
- 
-            }//hit.collider
- 
-        }//GetMouseButtonDown
+            isJumping = false;
+        }
+        if (other.gameObject.CompareTag("Enemy"))
+        {
+            TakeDamage();
+        }
+    }
+
+    void TakeDamage()
+    {
+        currentHealth--;
         
-        horizontalInput = moveAction.ReadValue<Vector2>().y;
-        transform.Translate(horizontalInput * speed * Time.deltaTime * Vector3.up);
-        if (transform.position.y < -yRange)
+        if (currentHealth >= 0 && currentHealth < hearts.Length)
         {
-            transform.position = new Vector3(transform.position.x, -yRange, transform.position.z);
+            hearts[currentHealth].enabled = false; // ปิดภาพหัวใจที่เสียไป
         }
-        if (transform.position.y > yRange)
+
+        if (currentHealth <= 0)
         {
-            transform.position = new Vector3(transform.position.x, yRange, transform.position.z);
+            Die();
         }
-    }// Update
+    }
+
+    void Die()
+    {
+        // โหลดซีนใหม่หรือลบ Player
+        // SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        Destroy(gameObject);
+    }
 }
