@@ -4,14 +4,18 @@ using UnityEngine.UI;
 
 public class PlayerControl : MonoBehaviour
 {
+    public GameObject GameOverPanel;
     public Image[] hearts;
     public int maxHealth = 3;
     private int currentHealth;
+
     public Transform shootPoint;
     public GameObject target;
     public Rigidbody2D bulletPrefab;
+
     public float speed = 5f;
     public float jumpForce = 150f;
+
     private bool isJumping = false;
     private float moveInput;
     private Rigidbody2D rb2d;
@@ -19,11 +23,14 @@ public class PlayerControl : MonoBehaviour
     void Awake()
     {
         currentHealth = maxHealth;
-        rb2d = GetComponent<Rigidbody2D>(); // กำหนด Rigidbody2D ที่แนบกับ Player
+        rb2d = GetComponent<Rigidbody2D>();
     }
 
     void Update()
     {
+        // รับอินพุตแนวนอนแบบไม่มีการลื่น (ค่าจะเป็น -1, 0, 1)
+        moveInput = Input.GetAxisRaw("Horizontal");
+
         // การกระโดด
         if (Input.GetButtonDown("Jump") && !isJumping)
         {
@@ -48,8 +55,10 @@ public class PlayerControl : MonoBehaviour
                 Rigidbody2D firedBullet = Instantiate(bulletPrefab, shootPoint.position, Quaternion.identity);
                 firedBullet.linearVelocity = projectileVelocity;
             }
+            
         }
 
+        // หมุนตัวตามทิศ
         if (Input.GetKeyDown(KeyCode.A))
         {
             transform.rotation = Quaternion.Euler(0, 0, 0);
@@ -59,10 +68,28 @@ public class PlayerControl : MonoBehaviour
             transform.rotation = Quaternion.Euler(0, 180, 0);
         }
 
-        // การเคลื่อนที่ซ้าย-ขวา
-        moveInput = Input.GetAxis("Horizontal");
-        rb2d.linearVelocity = new Vector2(moveInput * speed, rb2d.linearVelocity.y);
+        if (transform.position.y < -10)
+        {
+            Die();
+        }
     }
+
+    void FixedUpdate()
+    {
+        if (Mathf.Abs(moveInput) > 0.01f)
+        {
+            // เพิ่มแรงเฉพาะเมื่อกดซ้าย-ขวา
+            rb2d.AddForce(new Vector2(moveInput * speed, 0), ForceMode2D.Force);
+        }
+        else
+        {
+            // ถ้าไม่กด → ลดแรงเฉื่อยลง (ไม่ให้ลื่น)
+            Vector2 v = rb2d.linearVelocity;
+            v.x *= 0.9f; // ลองปรับเป็น 0.8f หรือ 0.7f ถ้ายังลื่นอยู่
+            rb2d.linearVelocity = v;
+        }
+    }
+
 
     Vector2 CalculateProjectileVelocity(Vector2 origin, Vector2 target, float time)
     {
@@ -72,8 +99,6 @@ public class PlayerControl : MonoBehaviour
 
         return new Vector2(velocityX, velocityY);
     }
-
-  
 
     void OnCollisionEnter2D(Collision2D other)
     {
@@ -90,10 +115,10 @@ public class PlayerControl : MonoBehaviour
     void TakeDamage()
     {
         currentHealth--;
-        
+
         if (currentHealth >= 0 && currentHealth < hearts.Length)
         {
-            hearts[currentHealth].enabled = false; // ปิดภาพหัวใจที่เสียไป
+            hearts[currentHealth].enabled = false;
         }
 
         if (currentHealth <= 0)
@@ -104,8 +129,8 @@ public class PlayerControl : MonoBehaviour
 
     void Die()
     {
-        // โหลดซีนใหม่หรือลบ Player
-        // SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        GameOverPanel.SetActive(true);
         Destroy(gameObject);
+        Time.timeScale = 0f; // หยุดเวลา
     }
 }

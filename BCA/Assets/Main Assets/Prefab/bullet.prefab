@@ -12,9 +12,10 @@ GameObject:
   - component: {fileID: 5853005460752317514}
   - component: {fileID: 2906116220889745945}
   - component: {fileID: 7968699153537875515}
-  m_Layer: 6
+  - component: {fileID: -5992056146682344546}
+  m_Layer: 7
   m_Name: bullet
-  m_TagString: Bullet
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -29,7 +30,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 5.316588, y: 4.160532, z: 1.07}
-  m_LocalScale: {x: 0.18242073, y: 0.18242073, z: 0.18242073}
+  m_LocalScale: {x: 0.7807378, y: 0.7807378, z: 0.7807378}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -186,7 +187,7 @@ Rigidbody2D:
   m_Mass: 1
   m_LinearDamping: 0
   m_AngularDamping: 0.05
-  m_GravityScale: 1
+  m_GravityScale: 0
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
@@ -198,3 +199,16 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 0
+--- !u!114 &-5992056146682344546
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1354830453099480309}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eb2c1dbcd2cf3a34bb584a8e2e083d1c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  speed: 3

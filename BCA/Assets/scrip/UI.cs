@@ -1,16 +1,12 @@
 using UnityEngine;
-
+using UnityEngine.SceneManagement;
 public class UI : MonoBehaviour
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    public int sceneNum;
+    public void LoadScene()
     {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
+        Time.timeScale = 1f; 
+        SceneManager.LoadScene(sceneNum);
         
     }
 }
