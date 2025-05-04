@@ -4,6 +4,13 @@ using UnityEngine.UI;
 
 public class PlayerControl : MonoBehaviour
 {
+    public float fireRate = 0.5f; // เวลาระหว่างการยิง (เช่น 0.5 วินาที)
+    private float nextFireTime = 0f;
+    private bool playerDead = false;
+    public AudioClip gameOverSound;
+    public AudioClip takeDamageSound;
+    public AudioClip jumpSound;
+    public AudioClip shootSound;
     public GameObject GameOverPanel;
     public Image[] hearts;
     public int maxHealth = 3;
@@ -19,11 +26,13 @@ public class PlayerControl : MonoBehaviour
     private bool isJumping = false;
     private float moveInput;
     private Rigidbody2D rb2d;
+    private AudioSource audioSource;
 
     void Awake()
     {
         currentHealth = maxHealth;
         rb2d = GetComponent<Rigidbody2D>();
+        audioSource = GetComponent<AudioSource>();
     }
 
     void Update()
@@ -36,11 +45,14 @@ public class PlayerControl : MonoBehaviour
         {
             rb2d.AddForce(Vector2.up * jumpForce);
             isJumping = true;
+            audioSource.PlayOneShot(jumpSound);
         }
 
         // การยิง
-        if (Input.GetMouseButtonDown(0))
+        if (Input.GetMouseButtonDown(0) && Time.time >= nextFireTime)
         {
+            nextFireTime = Time.time + fireRate;
+
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             Debug.DrawRay(ray.origin, ray.direction * 5f, Color.magenta, 5f);
 
@@ -48,6 +60,7 @@ public class PlayerControl : MonoBehaviour
 
             if (hit.collider != null)
             {
+                audioSource.PlayOneShot(shootSound);
                 target.transform.position = hit.point;
 
                 Vector2 projectileVelocity = CalculateProjectileVelocity(shootPoint.position, hit.point, 1f);
@@ -55,8 +68,8 @@ public class PlayerControl : MonoBehaviour
                 Rigidbody2D firedBullet = Instantiate(bulletPrefab, shootPoint.position, Quaternion.identity);
                 firedBullet.linearVelocity = projectileVelocity;
             }
-            
         }
+
 
         // หมุนตัวตามทิศ
         if (Input.GetKeyDown(KeyCode.A))
@@ -68,8 +81,9 @@ public class PlayerControl : MonoBehaviour
             transform.rotation = Quaternion.Euler(0, 180, 0);
         }
 
-        if (transform.position.y < -10)
+        if (transform.position.y < -10 && playerDead == false)
         {
+            
             Die();
         }
     }
@@ -108,6 +122,7 @@ public class PlayerControl : MonoBehaviour
         }
         if (other.gameObject.CompareTag("Enemy"))
         {
+            audioSource.PlayOneShot(takeDamageSound);
             TakeDamage();
         }
     }
@@ -121,16 +136,21 @@ public class PlayerControl : MonoBehaviour
             hearts[currentHealth].enabled = false;
         }
 
-        if (currentHealth <= 0)
+        if (currentHealth <= 0 && playerDead == false)
         {
+            
             Die();
         }
     }
 
     void Die()
     {
+        
+        playerDead = true;
         GameOverPanel.SetActive(true);
-        Destroy(gameObject);
-        Time.timeScale = 0f; // หยุดเวลา
+        Time.timeScale = 0;
+        audioSource.PlayOneShot(gameOverSound);
+        
+        
     }
 }

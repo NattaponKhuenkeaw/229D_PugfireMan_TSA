@@ -1,29 +1,44 @@
 using UnityEngine;
+using UnityEngine.UI;
+
 
 public class Boss : MonoBehaviour
 {
+    private bool bossDiee = false;
+    public AudioClip bossTake;
+    public AudioClip bossDie;
+    private AudioSource audioSource;
+    public GameObject gameWinPanel;
     public float bossHealth = 100f;
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    
+
+    void Start()
+    {
+        audioSource = GetComponent<AudioSource>();
+    }
 
     // Update is called once per frame
     void Update()
     {
-        if (bossHealth <= 0f)
+        if (bossHealth <= 0f && bossDiee != true)
         {
-            Time.timeScale = 0f; // หยุดเวลา
-            Destroy(this.gameObject);
-            Time.timeScale = 0f; // หยุดเวลา
+            bossDiee = true;
+            audioSource.PlayOneShot(bossDie);
+            gameWinPanel.SetActive(true);
+            Time.timeScale = 0f;
         }
-        
     }
 
     void OnCollisionEnter2D(Collision2D other2D)
     {
         if (other2D.gameObject.CompareTag("Bullet"))
         {
-             bossHealth -= 5f;
+            
+            audioSource.PlayOneShot(bossTake);
+             bossHealth -= 10f;
             Destroy(other2D.gameObject); // ลบลูกกระสุน
         }
     }
+
+    
+
 }

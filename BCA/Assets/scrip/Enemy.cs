@@ -2,11 +2,15 @@ using UnityEngine;
 
 public class Enemy : MonoBehaviour
 {
+    
     public float speed = 2f;
     private Transform player;
 
+    
+
     void Start()
     {
+        
         player = GameObject.FindGameObjectWithTag("Player").transform;
     }
 
@@ -28,6 +32,7 @@ public class Enemy : MonoBehaviour
     {
         if (other2D.gameObject.CompareTag("Bullet"))
         {
+            
             Destroy(other2D.gameObject); // ลบลูกกระสุน
             Destroy(gameObject);         // ลบศัตรู
         }
